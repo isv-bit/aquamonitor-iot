@@ -1,0 +1,627 @@
+[
+ {
+  "id": "tab_aqua",
+  "type": "tab",
+  "label": "AquaMonitor",
+  "disabled": false,
+  "info": "Telemetria y telecontrol del tanque de agua"
+ },
+ {
+  "id": "broker_hivemq",
+  "type": "mqtt-broker",
+  "name": "HiveMQ publico",
+  "broker": "broker.hivemq.com",
+  "port": "1883",
+  "clientid": "",
+  "autoConnect": true,
+  "usetls": false,
+  "protocolVersion": "4",
+  "keepalive": "60",
+  "cleansession": true,
+  "autoUnsubscribe": true,
+  "birthTopic": "",
+  "birthQos": "0",
+  "birthPayload": "",
+  "birthMsg": {},
+  "closeTopic": "",
+  "closeQos": "0",
+  "closePayload": "",
+  "closeMsg": {},
+  "willTopic": "",
+  "willQos": "0",
+  "willPayload": "",
+  "willMsg": {},
+  "userProps": "",
+  "sessionExpiry": ""
+ },
+ {
+  "id": "ui_base_aqua",
+  "type": "ui-base",
+  "name": "AquaMonitor",
+  "path": "/dashboard",
+  "includeClientData": true,
+  "acceptsClientConfig": [
+   "ui-notification",
+   "ui-control"
+  ],
+  "showPathInSidebar": false,
+  "showPageTitle": true,
+  "navigationStyle": "default",
+  "titleBarStyle": "default"
+ },
+ {
+  "id": "ui_theme_aqua",
+  "type": "ui-theme",
+  "name": "Tema AquaMonitor",
+  "colors": {
+   "surface": "#0b5394",
+   "primary": "#0094ce",
+   "bgPage": "#eef3f8",
+   "groupBg": "#ffffff",
+   "groupOutline": "#cccccc"
+  },
+  "sizes": {
+   "density": "default",
+   "pagePadding": "12px",
+   "groupGap": "12px",
+   "groupBorderRadius": "6px",
+   "widgetGap": "12px"
+  }
+ },
+ {
+  "id": "ui_page_tanque",
+  "type": "ui-page",
+  "name": "AquaMonitor - Tanque de agua",
+  "ui": "ui_base_aqua",
+  "path": "/tanque",
+  "icon": "water",
+  "layout": "grid",
+  "theme": "ui_theme_aqua",
+  "breakpoints": [
+   {
+    "name": "Default",
+    "px": "0",
+    "cols": "3"
+   },
+   {
+    "name": "Tablet",
+    "px": "576",
+    "cols": "6"
+   },
+   {
+    "name": "Small Desktop",
+    "px": "768",
+    "cols": "9"
+   },
+   {
+    "name": "Desktop",
+    "px": "1024",
+    "cols": "12"
+   }
+  ],
+  "order": 1,
+  "className": "",
+  "visible": "true",
+  "disabled": "false"
+ },
+ {
+  "id": "grp_vivo",
+  "type": "ui-group",
+  "name": "Mediciones en vivo",
+  "page": "ui_page_tanque",
+  "width": "6",
+  "height": "1",
+  "order": 1,
+  "showTitle": true,
+  "className": "",
+  "visible": "true",
+  "disabled": "false",
+  "groupType": "default"
+ },
+ {
+  "id": "grp_control",
+  "type": "ui-group",
+  "name": "Control de la bomba",
+  "page": "ui_page_tanque",
+  "width": "6",
+  "height": "1",
+  "order": 2,
+  "showTitle": true,
+  "className": "",
+  "visible": "true",
+  "disabled": "false",
+  "groupType": "default"
+ },
+ {
+  "id": "grp_hist",
+  "type": "ui-group",
+  "name": "Historico",
+  "page": "ui_page_tanque",
+  "width": "6",
+  "height": "1",
+  "order": 3,
+  "showTitle": true,
+  "className": "",
+  "visible": "true",
+  "disabled": "false",
+  "groupType": "default"
+ },
+ {
+  "id": "grp_tabla",
+  "type": "ui-group",
+  "name": "Ultimas mediciones recibidas",
+  "page": "ui_page_tanque",
+  "width": "6",
+  "height": "1",
+  "order": 4,
+  "showTitle": true,
+  "className": "",
+  "visible": "true",
+  "disabled": "false",
+  "groupType": "default"
+ },
+ {
+  "id": "mqtt_in_tel",
+  "type": "mqtt in",
+  "z": "tab_aqua",
+  "name": "Telemetria del tanque",
+  "topic": "eafit/isabella/tanque/telemetria",
+  "qos": "0",
+  "datatype": "json",
+  "broker": "broker_hivemq",
+  "nl": false,
+  "rap": true,
+  "rh": 0,
+  "inputs": 0,
+  "x": 160,
+  "y": 200,
+  "wires": [
+   [
+    "fn_separar",
+    "dbg_tel"
+   ]
+  ]
+ },
+ {
+  "id": "dbg_tel",
+  "type": "debug",
+  "z": "tab_aqua",
+  "name": "Ver telemetria",
+  "active": true,
+  "tosidebar": true,
+  "console": false,
+  "tostatus": true,
+  "complete": "payload",
+  "targetType": "msg",
+  "statusVal": "payload",
+  "statusType": "auto",
+  "x": 400,
+  "y": 100,
+  "wires": []
+ },
+ {
+  "id": "fn_separar",
+  "type": "function",
+  "z": "tab_aqua",
+  "name": "Separar variables y alertas",
+  "func": "const d = msg.payload;\nif (typeof d !== \"object\" || d === null) return null;\n\n// 1 y 2: valores para medidores y graficas\nconst nivel = { payload: d.nivel, topic: \"Nivel (%)\" };\nconst temp  = { payload: d.temperatura, topic: \"Temperatura (°C)\" };\n\n// 3: estado de la bomba (confirmado por el ESP32)\nconst bomba = { payload: d.bomba === \"ON\" ? \"🟢 ENCENDIDA\" : \"⚪ APAGADA\" };\n\n// 4: tabla con las ultimas 10 mediciones\nlet filas = flow.get(\"filas\") || [];\nfilas.unshift({\n    \"Hora\": new Date().toLocaleTimeString(\"es-CO\"),\n    \"Nivel (%)\": d.nivel,\n    \"Temperatura (°C)\": d.temperatura,\n    \"Bomba\": d.bomba\n});\nfilas = filas.slice(0, 10);\nflow.set(\"filas\", filas);\nconst tabla = { payload: filas };\n\n// 5: alertas segun los umbrales del proyecto\nconst alertas = [];\nif (d.nivel < 10)       alertas.push(\"⛔ Nivel CRÍTICO (< 10 %)\");\nelse if (d.nivel < 20)  alertas.push(\"⚠️ Nivel bajo (< 20 %): encienda la bomba\");\nelse if (d.nivel > 95)  alertas.push(\"⚠️ Riesgo de desbordamiento (> 95 %): apague la bomba\");\nif (d.temperatura > 25)      alertas.push(\"🌡️ Agua tibia (> 25 °C)\");\nelse if (d.temperatura < 10) alertas.push(\"❓ Temperatura inusual (< 10 °C)\");\nconst alerta = { payload: alertas.length ? alertas.join(\"  |  \") : \"✅ Condiciones normales\" };\n\nreturn [nivel, temp, bomba, tabla, alerta];",
+  "outputs": 5,
+  "timeout": 0,
+  "noerr": 0,
+  "initialize": "",
+  "finalize": "",
+  "libs": [],
+  "x": 420,
+  "y": 200,
+  "wires": [
+   [
+    "g_nivel",
+    "c_nivel"
+   ],
+   [
+    "g_temp",
+    "c_temp"
+   ],
+   [
+    "t_bomba"
+   ],
+   [
+    "tbl_med"
+   ],
+   [
+    "t_alerta"
+   ]
+  ]
+ },
+ {
+  "id": "g_nivel",
+  "type": "ui-gauge",
+  "z": "tab_aqua",
+  "name": "Nivel",
+  "group": "grp_vivo",
+  "order": 1,
+  "width": 3,
+  "height": 3,
+  "gtype": "gauge-half",
+  "gstyle": "needle",
+  "title": "Nivel del agua",
+  "units": "%",
+  "icon": "",
+  "prefix": "",
+  "suffix": "",
+  "segments": [
+   {
+    "from": "0",
+    "color": "#ea5353"
+   },
+   {
+    "from": "10",
+    "color": "#f3b200"
+   },
+   {
+    "from": "20",
+    "color": "#5cd65c"
+   },
+   {
+    "from": "95",
+    "color": "#ea5353"
+   }
+  ],
+  "min": 0,
+  "max": "100",
+  "sizeThickness": 16,
+  "sizeGap": 4,
+  "sizeKeyThickness": 8,
+  "styleRounded": true,
+  "styleGlow": false,
+  "className": "",
+  "x": 720,
+  "y": 80,
+  "wires": []
+ },
+ {
+  "id": "g_temp",
+  "type": "ui-gauge",
+  "z": "tab_aqua",
+  "name": "Temperatura",
+  "group": "grp_vivo",
+  "order": 2,
+  "width": 3,
+  "height": 3,
+  "gtype": "gauge-half",
+  "gstyle": "needle",
+  "title": "Temperatura del agua",
+  "units": "°C",
+  "icon": "",
+  "prefix": "",
+  "suffix": "",
+  "segments": [
+   {
+    "from": "0",
+    "color": "#5c9bd6"
+   },
+   {
+    "from": "10",
+    "color": "#5cd65c"
+   },
+   {
+    "from": "25",
+    "color": "#ea5353"
+   }
+  ],
+  "min": 0,
+  "max": "40",
+  "sizeThickness": 16,
+  "sizeGap": 4,
+  "sizeKeyThickness": 8,
+  "styleRounded": true,
+  "styleGlow": false,
+  "className": "",
+  "x": 740,
+  "y": 160,
+  "wires": []
+ },
+ {
+  "id": "t_alerta",
+  "type": "ui-text",
+  "z": "tab_aqua",
+  "group": "grp_vivo",
+  "order": 3,
+  "width": 6,
+  "height": 1,
+  "name": "Alertas",
+  "label": "Estado:",
+  "format": "{{msg.payload}}",
+  "layout": "row-left",
+  "style": false,
+  "font": "",
+  "fontSize": 16,
+  "color": "#717171",
+  "wrapText": true,
+  "className": "",
+  "x": 720,
+  "y": 380,
+  "wires": []
+ },
+ {
+  "id": "t_bomba",
+  "type": "ui-text",
+  "z": "tab_aqua",
+  "group": "grp_control",
+  "order": 1,
+  "width": 6,
+  "height": 1,
+  "name": "Estado bomba",
+  "label": "Bomba (confirmado por el ESP32):",
+  "format": "{{msg.payload}}",
+  "layout": "row-spread",
+  "style": false,
+  "font": "",
+  "fontSize": 16,
+  "color": "#717171",
+  "wrapText": false,
+  "className": "",
+  "x": 740,
+  "y": 240,
+  "wires": []
+ },
+ {
+  "id": "btn_on",
+  "type": "ui-button",
+  "z": "tab_aqua",
+  "group": "grp_control",
+  "name": "Boton ON",
+  "label": "Encender bomba",
+  "order": 2,
+  "width": 3,
+  "height": 1,
+  "emulateClick": false,
+  "tooltip": "",
+  "color": "#ffffff",
+  "bgcolor": "#2e7d32",
+  "className": "",
+  "icon": "water-pump",
+  "iconPosition": "left",
+  "payload": "ON",
+  "payloadType": "str",
+  "topic": "topic",
+  "topicType": "msg",
+  "buttonColor": "",
+  "textColor": "",
+  "iconColor": "",
+  "enableClick": true,
+  "enablePointerdown": false,
+  "pointerdownPayload": "",
+  "pointerdownPayloadType": "str",
+  "enablePointerup": false,
+  "pointerupPayload": "",
+  "pointerupPayloadType": "str",
+  "x": 160,
+  "y": 460,
+  "wires": [
+   [
+    "mqtt_out_ctrl",
+    "dbg_cmd"
+   ]
+  ]
+ },
+ {
+  "id": "btn_off",
+  "type": "ui-button",
+  "z": "tab_aqua",
+  "group": "grp_control",
+  "name": "Boton OFF",
+  "label": "Apagar bomba",
+  "order": 3,
+  "width": 3,
+  "height": 1,
+  "emulateClick": false,
+  "tooltip": "",
+  "color": "#ffffff",
+  "bgcolor": "#c62828",
+  "className": "",
+  "icon": "water-pump-off",
+  "iconPosition": "left",
+  "payload": "OFF",
+  "payloadType": "str",
+  "topic": "topic",
+  "topicType": "msg",
+  "buttonColor": "",
+  "textColor": "",
+  "iconColor": "",
+  "enableClick": true,
+  "enablePointerdown": false,
+  "pointerdownPayload": "",
+  "pointerdownPayloadType": "str",
+  "enablePointerup": false,
+  "pointerupPayload": "",
+  "pointerupPayloadType": "str",
+  "x": 160,
+  "y": 520,
+  "wires": [
+   [
+    "mqtt_out_ctrl",
+    "dbg_cmd"
+   ]
+  ]
+ },
+ {
+  "id": "mqtt_out_ctrl",
+  "type": "mqtt out",
+  "z": "tab_aqua",
+  "name": "Control de la bomba",
+  "topic": "eafit/isabella/tanque/control",
+  "qos": "0",
+  "retain": "false",
+  "respTopic": "",
+  "contentType": "",
+  "userProps": "",
+  "correl": "",
+  "expiry": "",
+  "broker": "broker_hivemq",
+  "x": 420,
+  "y": 480,
+  "wires": []
+ },
+ {
+  "id": "dbg_cmd",
+  "type": "debug",
+  "z": "tab_aqua",
+  "name": "Comando enviado",
+  "active": true,
+  "tosidebar": true,
+  "console": false,
+  "tostatus": true,
+  "complete": "payload",
+  "targetType": "msg",
+  "statusVal": "payload",
+  "statusType": "auto",
+  "x": 410,
+  "y": 560,
+  "wires": []
+ },
+ {
+  "id": "c_nivel",
+  "type": "ui-chart",
+  "z": "tab_aqua",
+  "group": "grp_hist",
+  "name": "Grafica nivel",
+  "label": "Nivel del agua (%)",
+  "order": 1,
+  "chartType": "line",
+  "category": "topic",
+  "categoryType": "msg",
+  "xAxisLabel": "",
+  "xAxisProperty": "",
+  "xAxisPropertyType": "timestamp",
+  "xAxisType": "time",
+  "xAxisFormat": "",
+  "xAxisFormatType": "auto",
+  "yAxisLabel": "%",
+  "yAxisProperty": "payload",
+  "yAxisPropertyType": "msg",
+  "ymin": "0",
+  "ymax": "100",
+  "action": "append",
+  "stackSeries": false,
+  "pointShape": "circle",
+  "pointRadius": 3,
+  "showLegend": false,
+  "removeOlder": 1,
+  "removeOlderUnit": "3600",
+  "removeOlderPoints": "",
+  "colors": [
+   "#0094ce",
+   "#ff7f0e",
+   "#2ca02c",
+   "#a347e1",
+   "#d62728",
+   "#ff9896",
+   "#9467bd",
+   "#8c564b",
+   "#e377c2"
+  ],
+  "textColor": [
+   "#666666"
+  ],
+  "textColorDefault": true,
+  "gridColor": [
+   "#e5e5e5"
+  ],
+  "gridColorDefault": true,
+  "width": 6,
+  "height": 4,
+  "className": "",
+  "interpolation": "linear",
+  "x": 730,
+  "y": 120,
+  "wires": [
+   []
+  ]
+ },
+ {
+  "id": "c_temp",
+  "type": "ui-chart",
+  "z": "tab_aqua",
+  "group": "grp_hist",
+  "name": "Grafica temperatura",
+  "label": "Temperatura del agua (°C)",
+  "order": 2,
+  "chartType": "line",
+  "category": "topic",
+  "categoryType": "msg",
+  "xAxisLabel": "",
+  "xAxisProperty": "",
+  "xAxisPropertyType": "timestamp",
+  "xAxisType": "time",
+  "xAxisFormat": "",
+  "xAxisFormatType": "auto",
+  "yAxisLabel": "°C",
+  "yAxisProperty": "payload",
+  "yAxisPropertyType": "msg",
+  "ymin": "0",
+  "ymax": "40",
+  "action": "append",
+  "stackSeries": false,
+  "pointShape": "circle",
+  "pointRadius": 3,
+  "showLegend": false,
+  "removeOlder": 1,
+  "removeOlderUnit": "3600",
+  "removeOlderPoints": "",
+  "colors": [
+   "#ff7f0e",
+   "#0094ce",
+   "#2ca02c",
+   "#a347e1",
+   "#d62728",
+   "#ff9896",
+   "#9467bd",
+   "#8c564b",
+   "#e377c2"
+  ],
+  "textColor": [
+   "#666666"
+  ],
+  "textColorDefault": true,
+  "gridColor": [
+   "#e5e5e5"
+  ],
+  "gridColorDefault": true,
+  "width": 6,
+  "height": 4,
+  "className": "",
+  "interpolation": "linear",
+  "x": 750,
+  "y": 200,
+  "wires": [
+   []
+  ]
+ },
+ {
+  "id": "tbl_med",
+  "type": "ui-table",
+  "z": "tab_aqua",
+  "group": "grp_tabla",
+  "name": "Tabla mediciones",
+  "label": "Ultimas 10 mediciones",
+  "order": 1,
+  "width": 6,
+  "height": 0,
+  "maxrows": "10",
+  "passthru": false,
+  "autocols": true,
+  "showSearch": false,
+  "selectionType": "none",
+  "columns": [],
+  "mobileBreakpoint": "sm",
+  "mobileBreakpointType": "defaults",
+  "action": "replace",
+  "className": "",
+  "x": 740,
+  "y": 300,
+  "wires": [
+   []
+  ]
+ }
+]
