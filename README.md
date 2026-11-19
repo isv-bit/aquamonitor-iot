@@ -10,8 +10,8 @@ elevado y permite **encender o apagar la bomba de llenado** de forma remota.
 
 | Componente | Enlace |
 |---|---|
-| Circuito simulado (Cirkit Designer) | https://app.cirkitdesigner.com/project/27b7380c-8263-4970-88a0-f784f79c2203 |
-| App de análisis (Streamlit Cloud) | _(pegar aquí el enlace público)_ |
+| Circuito simulado (Cirkit Designer) | https://app.cirkitdesigner.com/project/27b7380c-8263-4970-88a0-f784f79c2203|
+| App de análisis (Streamlit Cloud) | _(https://aquamonitor-isabella.streamlit.app/)_ |
 | Dashboard de Grafana | Ver capturas del dashboard en este repositorio |
 
 ## Arquitectura
